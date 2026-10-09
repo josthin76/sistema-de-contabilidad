@@ -9,12 +9,18 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Timeout de seguridad: asegura que la app nunca se quede en pantalla blanca si la conexión es lenta
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1200);
+
     const savedDemo = localStorage.getItem('contabeni_demo_user');
     if (savedDemo) {
       try {
         const demoObj = JSON.parse(savedDemo);
         setUser(demoObj);
         setLoading(false);
+        clearTimeout(timer);
         return;
       } catch (e) {
         localStorage.removeItem('contabeni_demo_user');
@@ -25,8 +31,10 @@ export const AuthProvider = ({ children }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      clearTimeout(timer);
     }).catch(() => {
       setLoading(false);
+      clearTimeout(timer);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -35,9 +43,13 @@ export const AuthProvider = ({ children }) => {
         setUser(session?.user ?? null);
       }
       setLoading(false);
+      clearTimeout(timer);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email, password) => {
@@ -82,7 +94,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ session, user, loading, signUp, signIn, signInWithGoogle, signInAsDemo, signOut }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

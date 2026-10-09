@@ -19,6 +19,39 @@ import InvoicePage from '@/components/invoices/InvoicePage';
 import ReportsPage from '@/components/reports/ReportsPage';
 import TutorialPage from '@/components/tutorial/TutorialPage';
 
+// Error Boundary para evitar pantallas blancas
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("ErrorBoundary detectó:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gray-50 text-center">
+          <div className="bg-white p-8 rounded-xl shadow-md max-w-md w-full border border-gray-200">
+            <h2 className="text-xl font-bold text-red-600 mb-2">Error al cargar la pantalla</h2>
+            <p className="text-sm text-gray-600 mb-4">{this.state.error?.message || 'Ocurrió un error inesperado'}</p>
+            <button 
+              onClick={() => { localStorage.clear(); window.location.href = '/#/login'; window.location.reload(); }} 
+              className="w-full bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              Reiniciar aplicación
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -82,21 +115,23 @@ const AppContent = () => {
         <Route path="aprender" element={<TutorialPage />} />
       </Route>
       
-      {/* Catch-all redirect to dashboard */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Catch-all redirect to login */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 };
 
 const App = () => {
   return (
-    <HashRouter>
-      <AuthProvider>
-        <ToastProvider>
-          <AppContent />
-        </ToastProvider>
-      </AuthProvider>
-    </HashRouter>
+    <ErrorBoundary>
+      <HashRouter>
+        <AuthProvider>
+          <ToastProvider>
+            <AppContent />
+          </ToastProvider>
+        </AuthProvider>
+      </HashRouter>
+    </ErrorBoundary>
   );
 };
 

@@ -8,8 +8,32 @@
     <meta name="description" content="Aplicación web contable con funcionamiento sin conexión para micronegocios de Trinidad y el Beni. TecnoFeria 2026." />
     <meta name="theme-color" content="#059669" />
   </head>
-  <body>
-    <div id="root"></div>
+  <body style="margin: 0; background-color: #f9fafb;">
+    <div id="debug-error" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: #fee2e2; border-bottom: 2px solid #ef4444; color: #991b1b; padding: 12px; font-family: sans-serif; font-size: 14px; z-index: 99999;"></div>
+    <div id="root">
+      <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #10b981 0%, #0f766e 100%); color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 20px;">
+        <div style="width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;"></div>
+        <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.5px;">ContaBeni</h1>
+        <p style="margin: 0; font-size: 15px; opacity: 0.9;">Tu negocio, tus números, sin complicaciones</p>
+        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+      </div>
+    </div>
+    <script>
+      window.onerror = function(msg, url, line, col, error) {
+        var el = document.getElementById('debug-error');
+        if (el) {
+          el.style.display = 'block';
+          el.innerHTML = '<strong>Error de la aplicación:</strong> ' + msg + '<br><small>' + (url || '') + ':' + (line || '') + '</small>';
+        }
+      };
+      window.onunhandledrejection = function(e) {
+        var el = document.getElementById('debug-error');
+        if (el) {
+          el.style.display = 'block';
+          el.innerHTML = '<strong>Error no controlado:</strong> ' + (e.reason && (e.reason.message || e.reason) || 'Error');
+        }
+      };
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
