@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Providers
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -90,13 +90,13 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <AuthProvider>
         <ToastProvider>
           <AppContent />
         </ToastProvider>
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 
