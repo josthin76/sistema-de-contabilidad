@@ -17,7 +17,7 @@ export function TransactionDetail({ transactionId }) {
     setLoading(true);
     try {
       const data = await fetchTransaccionDetail(transactionId);
-      setDetail(data);
+      setDetail({ ...data.transaccion, lineas: data.lineas || [] });
     } catch (error) {
       console.error("Error loading transaction detail:", error);
     } finally {
@@ -33,8 +33,8 @@ export function TransactionDetail({ transactionId }) {
     return <div className="p-8 text-center text-red-500 text-sm">Error al cargar los detalles.</div>;
   }
 
-  const totalDebito = detail.lineas?.reduce((sum, l) => sum + (l.debito || 0), 0) || 0;
-  const totalCredito = detail.lineas?.reduce((sum, l) => sum + (l.credito || 0), 0) || 0;
+  const totalDebito = detail.lineas?.reduce((sum, linea) => sum + (Number(linea.debito) || 0), 0) || 0;
+  const totalCredito = detail.lineas?.reduce((sum, linea) => sum + (Number(linea.credito) || 0), 0) || 0;
   const isBalanced = Math.abs(totalDebito - totalCredito) < 0.01;
 
   return (

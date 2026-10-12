@@ -1,9 +1,11 @@
 import React from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, Moon, Sun } from 'lucide-react';
 import { useSyncStatus } from '@/hooks/useSyncStatus';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function Header({ toggleSidebar, title }) {
   const status = useSyncStatus();
+  const { theme, toggleTheme } = useTheme();
 
   const dateStr = new Date().toLocaleDateString('es-ES', { 
     weekday: 'long', 
@@ -27,7 +29,7 @@ export default function Header({ toggleSidebar, title }) {
           </h1>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           <div className="hidden sm:block text-sm text-gray-500 capitalize">
             {dateStr}
           </div>
@@ -43,6 +45,16 @@ export default function Header({ toggleSidebar, title }) {
                status === 'syncing' ? 'Sincronizando...' : 'Fuera de línea'}
             </span>
           </div>
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo nocturno'}
+            title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo nocturno'}
+            className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            {theme === 'dark' ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
+          </button>
         </div>
       </div>
     </header>

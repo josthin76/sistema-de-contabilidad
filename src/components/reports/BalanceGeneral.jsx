@@ -6,9 +6,9 @@ export function BalanceGeneral({ cuentas = [] }) {
   const pasivos = cuentas.filter(c => c.tipo === 'pasivo');
   const patrimonio = cuentas.filter(c => c.tipo === 'patrimonio');
 
-  const totalActivos = activos.reduce((sum, c) => sum + (c.saldo || 0), 0);
-  const totalPasivos = pasivos.reduce((sum, c) => sum + (c.saldo || 0), 0);
-  const totalPatrimonio = patrimonio.reduce((sum, c) => sum + (c.saldo || 0), 0);
+  const totalActivos = activos.reduce((sum, c) => sum + (Number(c.saldo) || 0), 0);
+  const totalPasivos = pasivos.reduce((sum, c) => sum + (Number(c.saldo) || 0), 0);
+  const totalPatrimonio = patrimonio.reduce((sum, c) => sum + (Number(c.saldo) || 0), 0);
 
   const isBalanced = Math.abs(totalActivos - (totalPasivos + totalPatrimonio)) < 0.01;
 
@@ -20,7 +20,7 @@ export function BalanceGeneral({ cuentas = [] }) {
           {data.map(cuenta => (
             <tr key={cuenta.id} className="border-b border-gray-100 last:border-0">
               <td className="py-2 text-gray-600">{cuenta.codigo} - {cuenta.nombre}</td>
-              <td className="py-2 text-right font-medium text-gray-800">{formatCurrency(cuenta.saldo || 0)}</td>
+              <td className="py-2 text-right font-medium text-gray-800">{formatCurrency(Number(cuenta.saldo) || 0)}</td>
             </tr>
           ))}
           {data.length === 0 && (

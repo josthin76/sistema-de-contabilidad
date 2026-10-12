@@ -120,9 +120,9 @@ export async function fetchResumenFiado() {
     let saldo = 0;
     txsCliente.forEach(t => {
       if (t.descripcion.startsWith(`Fiado: ${cliente.nombre} - `)) {
-        saldo += t.total;
+        saldo += Number(t.total) || 0;
       } else if (t.descripcion.startsWith(`Abono Fiado: ${cliente.nombre} - `)) {
-        saldo -= t.total;
+        saldo -= Number(t.total) || 0;
       }
     });
 

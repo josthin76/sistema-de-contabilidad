@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Providers
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 import { ToastProvider } from '@/components/ui/Toast';
 
 // Layout
@@ -39,7 +40,7 @@ class ErrorBoundary extends React.Component {
             <h2 className="text-xl font-bold text-red-600 mb-2">Error al cargar la pantalla</h2>
             <p className="text-sm text-gray-600 mb-4">{this.state.error?.message || 'Ocurrió un error inesperado'}</p>
             <button 
-              onClick={() => { localStorage.clear(); window.location.href = '/#/login'; window.location.reload(); }} 
+              onClick={() => { window.location.hash = '#/login'; window.location.reload(); }}
               className="w-full bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-emerald-700 transition-colors"
             >
               Reiniciar aplicación
@@ -98,6 +99,13 @@ const AppContent = () => {
           <AuthPage />
         </AuthRoute>
       } />
+
+      {/* Supabase devuelve el token OAuth como fragmento; HashRouter lo lee como un segmento. */}
+      <Route path="/:callback" element={
+        <AuthRoute>
+          <AuthPage />
+        </AuthRoute>
+      } />
       
       <Route path="/" element={
         <ProtectedRoute>
@@ -126,9 +134,11 @@ const App = () => {
     <ErrorBoundary>
       <HashRouter>
         <AuthProvider>
-          <ToastProvider>
-            <AppContent />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <AppContent />
+            </ToastProvider>
+          </ThemeProvider>
         </AuthProvider>
       </HashRouter>
     </ErrorBoundary>

@@ -40,7 +40,7 @@ export function InvoicePage() {
     setTxDetailLoading(true);
     try {
       const detail = await fetchTransaccionDetail(tx.id);
-      setSelectedTx(detail);
+      setSelectedTx({ ...detail.transaccion, lineas: detail.lineas || [] });
     } catch (error) {
       console.error("Error fetching detail:", error);
     } finally {

@@ -2,93 +2,152 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const AuthContext = createContext({});
+const DEMO_USER_KEY = 'contabeni_demo_user';
+const DEMO_USER_ID = 'demo-piloto-trinidad';
+
+function removeStoredItem(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch (error) {
+    console.warn('No se pudo limpiar el almacenamiento local:', error);
+  }
+}
+
+function readDemoUser() {
+  try {
+    const saved = localStorage.getItem(DEMO_USER_KEY);
+    if (!saved) return null;
+    const user = JSON.parse(saved);
+    return user?.id === DEMO_USER_ID ? user : null;
+  } catch (error) {
+    removeStoredItem(DEMO_USER_KEY);
+    return null;
+  }
+}
 
 export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Timeout de seguridad: asegura que la app nunca se quede en pantalla blanca si la conexión es lenta
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1200);
-
-    const savedDemo = localStorage.getItem('contabeni_demo_user');
-    if (savedDemo) {
-      try {
-        const demoObj = JSON.parse(savedDemo);
-        setUser(demoObj);
-        setLoading(false);
-        clearTimeout(timer);
-        return;
-      } catch (e) {
-        localStorage.removeItem('contabeni_demo_user');
+  const saveActiveUser = (nextUser) => {
+    try {
+      if (nextUser?.id === DEMO_USER_ID) {
+        localStorage.setItem(DEMO_USER_KEY, JSON.stringify(nextUser));
+      } else {
+        localStorage.removeItem(DEMO_USER_KEY);
       }
+    } catch (error) {
+      console.warn('No se pudo guardar la sesión de demostración:', error);
     }
+    setUser(nextUser);
+  };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+  useEffect(() => {
+    let disposed = false;
+    let authEventReceived = false;
+
+    // Retire credenciales locales antiguas: las contraseñas se guardaban en texto plano.
+    removeStoredItem('contabeni_user');
+    removeStoredItem('contabeni_registered_users');
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      authEventReceived = true;
+      if (disposed) return;
+
+      setSession(nextSession);
+      setUser(nextSession?.user || (event === 'SIGNED_OUT' ? null : readDemoUser()));
       setLoading(false);
-      clearTimeout(timer);
-    }).catch(() => {
-      setLoading(false);
-      clearTimeout(timer);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!localStorage.getItem('contabeni_demo_user')) {
-        setSession(session);
-        setUser(session?.user ?? null);
-      }
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      if (disposed || authEventReceived) return;
+      setSession(currentSession);
+      setUser(currentSession?.user || readDemoUser());
       setLoading(false);
-      clearTimeout(timer);
+    }).catch((error) => {
+      if (disposed) return;
+      console.error('No se pudo recuperar la sesión:', error);
+      setUser(readDemoUser());
+      setLoading(false);
     });
 
     return () => {
-      clearTimeout(timer);
+      disposed = true;
       subscription.unsubscribe();
     };
   }, []);
 
-  const signUp = async (email, password) => {
-    return supabase.auth.signUp({ email, password });
+  const signUp = async (email, password, name = '') => {
+    const cleanEmail = email.trim().toLowerCase();
+    const displayName = name.trim() || cleanEmail.split('@')[0];
+    saveActiveUser(null);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: { data: { name: displayName } },
+      });
+      if (error) return { data, error };
+
+      if (data?.session) {
+        setSession(data.session);
+        setUser(data.user);
+      }
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
   };
 
   const signIn = async (email, password) => {
-    localStorage.removeItem('contabeni_demo_user');
-    return supabase.auth.signInWithPassword({ email, password });
+    const cleanEmail = email.trim().toLowerCase();
+    saveActiveUser(null);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+      if (error) return { data, error };
+      if (!data?.user || !data?.session) {
+        return { data, error: new Error('No se pudo iniciar sesión. Verifica tus datos e inténtalo de nuevo.') };
+      }
+      setSession(data.session);
+      setUser(data.user);
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error };
+    }
   };
 
   const signInWithGoogle = async () => {
-    localStorage.removeItem('contabeni_demo_user');
+    saveActiveUser(null);
     return supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: `${window.location.origin}${window.location.pathname}`,
       },
     });
   };
 
   const signInAsDemo = () => {
     const demoUser = {
-      id: 'demo-piloto-trinidad',
+      id: DEMO_USER_ID,
       email: 'comercial.beni@contabeni.bo',
-      user_metadata: { name: 'Comercial El Beni' }
+      user_metadata: { name: 'Comercial El Beni' },
     };
-    localStorage.setItem('contabeni_demo_user', JSON.stringify(demoUser));
-    setUser(demoUser);
+    setSession(null);
+    saveActiveUser(demoUser);
+    return demoUser;
   };
 
   const signOut = async () => {
-    localStorage.removeItem('contabeni_demo_user');
-    setUser(null);
+    saveActiveUser(null);
     setSession(null);
     try {
-      await supabase.auth.signOut();
-    } catch (e) {
-      // ignore offline error on signout
+      const { error } = await supabase.auth.signOut();
+      if (error) console.error('No se pudo cerrar la sesión remota:', error);
+    } catch (error) {
+      console.error('No se pudo cerrar la sesión remota:', error);
     }
   };
 
@@ -99,6 +158,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);

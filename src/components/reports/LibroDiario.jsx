@@ -15,11 +15,11 @@ export function LibroDiario({ transacciones = [] }) {
   });
 
   const totalDebito = filteredTransacciones.reduce((sum, t) => {
-    return sum + (t.lineas?.reduce((s, l) => s + (l.debito || 0), 0) || 0);
+    return sum + (t.lineas?.reduce((lineSum, linea) => lineSum + (Number(linea.debito) || 0), 0) || 0);
   }, 0);
 
   const totalCredito = filteredTransacciones.reduce((sum, t) => {
-    return sum + (t.lineas?.reduce((s, l) => s + (l.credito || 0), 0) || 0);
+    return sum + (t.lineas?.reduce((lineSum, linea) => lineSum + (Number(linea.credito) || 0), 0) || 0);
   }, 0);
 
   return (

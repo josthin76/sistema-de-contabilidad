@@ -4,7 +4,7 @@ import StatCard from './StatCard';
 import HealthSemaphore from './HealthSemaphore';
 import { fetchCuentas, fetchTransacciones } from '@/lib/accounting';
 import { fetchProductos } from '@/lib/inventory';
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency, formatDate } from '@/lib/format';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -36,21 +36,22 @@ export default function Dashboard() {
       setProductos(productosData || []);
 
       // Calculate Stats
-      const cajaCuenta = (cuentasData || []).find(c => c.codigo === '1-1000' || c.nombre.toLowerCase().includes('caja'));
-      const efectivo = cajaCuenta?.saldo || 0;
+      const cajaCuenta = (cuentasData || []).find(c => c.codigo === '1-1000' || c.nombre?.toLowerCase().includes('caja'));
+      const efectivo = Number(cajaCuenta?.saldo) || 0;
 
       const now = new Date();
-      const currentMonth = now.getMonth();
+      const currentMonth = now.getMonth() + 1;
       const currentYear = now.getFullYear();
 
       let ventasMes = 0;
       let gastosMes = 0;
 
       (transaccionesData || []).forEach(t => {
-        const tDate = new Date(t.fecha);
-        if (tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear) {
-          if (t.tipo === 'venta') ventasMes += t.total;
-          if (t.tipo === 'compra' || t.tipo === 'pago') gastosMes += t.total;
+        const [year, month] = String(t.fecha).split('-').map(Number);
+        if (year === currentYear && month === currentMonth) {
+          const tot = Number(t.total) || 0;
+          if (t.tipo === 'venta') ventasMes += tot;
+          if (t.tipo === 'compra' || t.tipo === 'pago') gastosMes += tot;
         }
       });
 
@@ -73,7 +74,7 @@ export default function Dashboard() {
   }
 
   const recentTransactions = transacciones.slice(0, 5);
-  const lowStockProducts = productos.filter(p => p.stock <= (p.stock_minimo || 0)).slice(0, 5);
+  const lowStockProducts = productos.filter(p => Number(p.stock || 0) <= Number(p.stock_minimo || 0)).slice(0, 5);
   const currentDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
@@ -126,7 +127,7 @@ export default function Dashboard() {
                 <div key={t.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
                   <div>
                     <p className="font-medium text-gray-800">{t.descripcion}</p>
-                    <p className="text-xs text-gray-500">{new Date(t.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    <p className="text-xs text-gray-500">{formatDate(t.fecha)}</p>
                   </div>
                   <div className={`font-bold ${t.tipo === 'venta' ? 'text-emerald-600' : 'text-gray-800'}`}>
                     {t.tipo === 'venta' ? '+' : '-'}{formatCurrency(t.total)}

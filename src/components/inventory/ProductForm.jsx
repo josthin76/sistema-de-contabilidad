@@ -9,6 +9,7 @@ export default function ProductForm({ product, onSave, onCancel }) {
     precio_compra: product?.precio_compra || 0,
     precio_venta: product?.precio_venta || 0,
     stock_minimo: product?.stock_minimo || 0,
+    stock: product?.stock || 0,
   });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -31,7 +32,8 @@ export default function ProductForm({ product, onSave, onCancel }) {
           descripcion: formData.descripcion,
           precio_compra: Number(formData.precio_compra),
           precio_venta: Number(formData.precio_venta),
-          stock_minimo: Number(formData.stock_minimo)
+          stock_minimo: Number(formData.stock_minimo),
+          stock: Number(formData.stock),
         });
       } else {
         await createProducto(
@@ -39,7 +41,8 @@ export default function ProductForm({ product, onSave, onCancel }) {
           formData.descripcion,
           Number(formData.precio_compra),
           Number(formData.precio_venta),
-          Number(formData.stock_minimo)
+          Number(formData.stock_minimo),
+          Number(formData.stock)
         );
       }
       onSave();
@@ -116,16 +119,31 @@ export default function ProductForm({ product, onSave, onCancel }) {
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Stock Mínimo</label>
-          <input
-            type="number"
-            min="0"
-            value={formData.stock_minimo}
-            onChange={(e) => setFormData({ ...formData, stock_minimo: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-            required
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              {product ? 'Stock Actual' : 'Stock Inicial'}
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={formData.stock}
+              onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Stock Mínimo</label>
+            <input
+              type="number"
+              min="0"
+              value={formData.stock_minimo}
+              onChange={(e) => setFormData({ ...formData, stock_minimo: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+              required
+            />
+          </div>
         </div>
 
         <div className="flex justify-end pt-4 gap-2">

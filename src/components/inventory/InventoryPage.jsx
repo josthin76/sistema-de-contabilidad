@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Plus, Search, AlertCircle } from 'lucide-react';
-import { fetchProductos, deleteProducto } from '@/lib/inventory';
+import { fetchProductos, deleteProducto, ajustarStock } from '@/lib/inventory';
 import { formatCurrency } from '@/lib/format';
 import ProductCard from './ProductCard';
 import ProductForm from './ProductForm';
@@ -37,6 +37,16 @@ export default function InventoryPage() {
       } catch (err) {
         alert('Error al eliminar: ' + err.message);
       }
+    }
+  };
+
+  const handleAdjustStock = async (product, delta) => {
+    try {
+      setError('');
+      await ajustarStock(product.id, delta);
+      await loadProductos();
+    } catch (err) {
+      setError('Error al ajustar el stock: ' + err.message);
     }
   };
 
@@ -134,6 +144,7 @@ export default function InventoryPage() {
               product={product}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAdjustStock={handleAdjustStock}
             />
           ))}
         </div>

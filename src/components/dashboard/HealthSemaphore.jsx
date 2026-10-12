@@ -1,23 +1,24 @@
 import React, { useMemo } from 'react';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
+import { formatCurrency } from '@/lib/format';
 
 export default function HealthSemaphore({ cuentas = [], productos = [] }) {
   const healthData = useMemo(() => {
     // 1. Calculate Cash
-    const cajaCuenta = cuentas.find(c => c.codigo === '1-1000' || c.nombre.toLowerCase().includes('caja'));
-    const bancosCuenta = cuentas.find(c => c.codigo === '1-1100' || c.nombre.toLowerCase().includes('banco'));
+    const cajaCuenta = cuentas.find(c => c.codigo === '1-1000' || c.nombre?.toLowerCase().includes('caja'));
+    const bancosCuenta = cuentas.find(c => c.codigo === '1-1100' || c.nombre?.toLowerCase().includes('banco'));
     
-    const efectivoDisponible = (cajaCuenta?.saldo || 0) + (bancosCuenta?.saldo || 0);
+    const efectivoDisponible = (Number(cajaCuenta?.saldo) || 0) + (Number(bancosCuenta?.saldo) || 0);
 
     // 2. Calculate Revenue vs Expenses
-    const ingresos = cuentas.filter(c => c.tipo === 'ingreso').reduce((acc, c) => acc + (c.saldo || 0), 0);
-    const gastos = cuentas.filter(c => c.tipo === 'gasto').reduce((acc, c) => acc + (c.saldo || 0), 0);
-    const compras = cuentas.filter(c => c.codigo && c.codigo.startsWith('5-1000')).reduce((acc, c) => acc + (c.saldo || 0), 0);
+    const ingresos = cuentas.filter(c => c.tipo === 'ingreso').reduce((acc, c) => acc + (Number(c.saldo) || 0), 0);
+    const gastos = cuentas.filter(c => c.tipo === 'gasto').reduce((acc, c) => acc + (Number(c.saldo) || 0), 0);
+    const compras = cuentas.filter(c => c.codigo && c.codigo.startsWith('5-1000')).reduce((acc, c) => acc + (Number(c.saldo) || 0), 0);
     
     const totalGastos = gastos + compras;
 
     // 3. Calculate Low Stock
-    const productosBajoStock = productos.filter(p => p.stock <= (p.stock_minimo || 0));
+    const productosBajoStock = productos.filter(p => Number(p.stock || 0) <= Number(p.stock_minimo || 0));
 
     // Determine Status
     let status = 'GREEN';
@@ -80,7 +81,7 @@ export default function HealthSemaphore({ cuentas = [], productos = [] }) {
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-500 mb-1">Efectivo Disponible</p>
               <p className={`text-lg font-bold ${efectivoDisponible > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                ${efectivoDisponible.toFixed(2)}
+                {formatCurrency(efectivoDisponible)}
               </p>
               <div className="mt-2 flex items-center text-xs text-gray-500">
                 {efectivoDisponible > 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
@@ -91,7 +92,7 @@ export default function HealthSemaphore({ cuentas = [], productos = [] }) {
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-500 mb-1">Ingresos vs Gastos</p>
               <p className={`text-lg font-bold ${ingresos >= totalGastos ? 'text-emerald-600' : 'text-amber-600'}`}>
-                ${ingresos.toFixed(2)} / ${totalGastos.toFixed(2)}
+                {formatCurrency(ingresos)} / {formatCurrency(totalGastos)}
               </p>
               <div className="mt-2 flex items-center text-xs text-gray-500">
                 Balance general

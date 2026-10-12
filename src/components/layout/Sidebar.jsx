@@ -78,12 +78,15 @@ export default function Sidebar({ isOpen, onClose }) {
 
         <div className="p-4 border-t border-gray-100">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold">
-              {user?.email?.charAt(0).toUpperCase() || 'U'}
+            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold shrink-0">
+              {user?.user_metadata?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.email || 'usuario@ejemplo.com'}
+              <p className="text-sm font-semibold text-gray-900 truncate">
+                {user?.user_metadata?.name || user?.email || 'Comercial El Beni'}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {user?.email || ''}
               </p>
             </div>
           </div>

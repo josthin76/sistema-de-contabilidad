@@ -74,7 +74,7 @@ VITE_SUPABASE_ANON_KEY=tu-clave-anon-publica
 ```
 
 ### 4. Configurar la Base de Datos en Supabase
-Ejecuta el script SQL ubicado en `supabase/migrations/20261008235949_create_accounting_schema.sql` en el **SQL Editor** de tu panel de Supabase.
+Ejecuta en orden los scripts SQL ubicados en `supabase/migrations/` en el **SQL Editor** de tu panel de Supabase. Si ya tienes instalada la base de datos, ejecuta también las migraciones nuevas.
 
 ### 5. Iniciar en modo desarrollo
 ```bash
