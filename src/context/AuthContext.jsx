@@ -4,6 +4,18 @@ import { supabase } from '@/lib/supabase';
 const AuthContext = createContext({});
 const DEMO_USER_KEY = 'contabeni_demo_user';
 const DEMO_USER_ID = 'demo-piloto-trinidad';
+const DEFAULT_APP_URL = 'https://sistema-de-contabilidad-4dce.onrender.com';
+
+function getAuthRedirectUrl() {
+  const configuredUrl = import.meta.env.VITE_APP_URL?.trim();
+  if (configuredUrl) return configuredUrl.replace(/\/+$/, '');
+
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return window.location.origin;
+  }
+
+  return DEFAULT_APP_URL;
+}
 
 function removeStoredItem(key) {
   try {
@@ -124,7 +136,7 @@ export const AuthProvider = ({ children }) => {
     return supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}${window.location.pathname}`,
+        redirectTo: getAuthRedirectUrl(),
       },
     });
   };

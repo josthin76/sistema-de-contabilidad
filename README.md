@@ -71,6 +71,7 @@ Crea un archivo `.env` en la raíz del proyecto basándote en `.env.example`:
 ```env
 VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
 VITE_SUPABASE_ANON_KEY=tu-clave-anon-publica
+VITE_APP_URL=https://tu-app.onrender.com
 ```
 
 ### 4. Configurar la Base de Datos en Supabase
